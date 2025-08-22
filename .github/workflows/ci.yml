@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   pull_request:
 
+# Garante que o GITHUB_TOKEN possa escrever no branch gh-pages
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,15 +26,18 @@ jobs:
         run: echo "Sem testes automatizados."
 
   deploy-staging:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [build, test]
-    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - name: Move files into staging folder
+
+      - name: Preparar pasta de staging
         run: |
-          mkdir staging
-          cp index.html staging/
+          mkdir -p staging
+          cp index.html staging/index.html
+
+      # Publica APENAS a pasta ./staging dentro de gh-pages/staging/
       - name: Deploy to GitHub Pages (staging)
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -38,3 +45,5 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./staging
           destination_dir: staging
+          keep_files: true          # NÃO apaga o conteúdo já publicado (como a raiz de produção)
+          enable_jekyll: false
