@@ -1,5 +1,4 @@
-# .github/workflows/deploy-staging.yml
-name: Staging (no-op on gh-pages push)
+name: 🟢 Staging (log on gh-pages push)
 
 on:
   push:
@@ -10,9 +9,7 @@ permissions:
 
 jobs:
   note:
-    # Evita rodar quando for o próprio bot do GitHub (commits do Pages)
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Log
-        run: echo "Push detectado em gh-pages. O GitHub Pages fará a publicação automaticamente."
+      - run: echo "Push no branch gh-pages detectado. O GitHub Pages publicará /staging automaticamente."
