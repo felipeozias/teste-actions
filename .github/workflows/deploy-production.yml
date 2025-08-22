@@ -1,29 +1,29 @@
-# .github/workflows/deploy-production.yml
-name: Deploy Production (on PR merge)
+name: 🟢🟢 Promote Staging to Production (on PR merge to main)
 
 on:
   pull_request:
     branches: [ main ]
-    types: [ closed ]     # dispara quando o PR é fechado (merge ou close)
+    types: [ closed ]  # dispara quando PR é fechado (merge ou apenas fechado)
 
 permissions:
   contents: write
 
 jobs:
-  deploy-production:
-    if: github.event.pull_request.merged == true   # garante que foi MERGE
+  promote:
+    if: github.event.pull_request.merged == true  # garante que foi MERGE
     runs-on: ubuntu-latest
     steps:
-      # Depois do merge, queremos o conteúdo da MAIN já mergeado
-      - uses: actions/checkout@v3
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
         with:
-          ref: main
+          ref: gh-pages
 
-      - name: Deploy to GitHub Pages (production)
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: .
-          keep_files: true
-          enable_jekyll: false
+      - name: Promover staging → produção (copiar index)
+        run: |
+          test -f staging/index.html || (echo "staging/index.html não encontrado no gh-pages" && exit 1)
+          cp -f staging/index.html index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "promote: staging → production (via PR merge na main)" || echo "Sem mudanças para promover"
+          git push origin gh-pages
